@@ -143,7 +143,7 @@ def main():
     }
     history = sorted(hist_map.values(), key=lambda x: x["date"])
 
-    result = {
+    day_snap = {
         "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "data_date": fmt_date(latest_d),
         "data_date_raw": latest_d,
@@ -151,13 +151,45 @@ def main():
         "month_base_date": fmt_date(month_d),
         "summary": summary,
         "details": details,
-        "history": history,
         "source": "广州期货交易所 仓单日报 http://www.gfex.com.cn/gfex/cdrb/hqsj_tjsj.shtml",
+    }
+
+    days_dir = script_dir / "days"
+    days_dir.mkdir(exist_ok=True)
+    (days_dir / f"{latest_d}.json").write_text(
+        json.dumps(day_snap, ensure_ascii=False), encoding="utf-8"
+    )
+
+    # 维护可浏览日期列表与 days-all 缓存（供页面日期选择）
+    available = set()
+    for p in days_dir.glob("*.json"):
+        available.add(f"{p.stem[:4]}-{p.stem[4:6]}-{p.stem[6:8]}")
+    available.add(fmt_date(latest_d))
+    available_list = sorted(available, reverse=True)
+    (script_dir / "available_dates.json").write_text(
+        json.dumps(available_list, ensure_ascii=False), encoding="utf-8"
+    )
+
+    all_days = {}
+    all_path = script_dir / "days-all.json"
+    if all_path.exists():
+        try:
+            all_days = json.loads(all_path.read_text(encoding="utf-8"))
+        except Exception:
+            all_days = {}
+    all_days[fmt_date(latest_d)] = day_snap
+    all_path.write_text(json.dumps(all_days, ensure_ascii=False), encoding="utf-8")
+
+    result = {
+        **day_snap,
+        "history": history,
+        "available_dates": available_list,
     }
 
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✅ 已更新 data.json （数据日期: {latest_d}）")
     print(f"   周基准: {week_d}  月基准: {month_d}")
+    print(f"   可浏览日期: {len(available_list)} 天（已写入 days/{latest_d}.json）")
     for code, s in result["summary"].items():
         print(
             f"  {s['variety']}({s['code']}): "
