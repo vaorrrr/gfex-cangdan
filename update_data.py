@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 广期所仓单数据自动更新脚本
-每日运行此脚本可更新 data.json，配合静态网站实现自动更新。
-建议使用 cron 或 GitHub Actions 每日 17:30 后执行。
+- 最新日度注册/注销/净变化
+- 周度、月度累计净变化（约 5 / 20 个交易日回溯）
+- 分仓库日/周/月变化
+- 保留 history 用于多年同期对比图
 """
 
 import requests
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+
 
 def get_gfex_data(date_str: str) -> dict:
     url = "http://www.gfex.com.cn/u/interfacesWebTdWbillWeeklyQuotes/loadList"
@@ -39,10 +42,10 @@ def process_data(raw: dict) -> dict | None:
                 "variety": variety.replace("小计", ""),
                 "code": order.upper(),
                 "lastWbillQty": int(item.get("lastWbillQty") or 0),
-                "regWbillQty": int(item.get("regWbillQty") or 0),      # 注册量
-                "logoutWbillQty": int(item.get("logoutWbillQty") or 0),  # 注销量
-                "wbillQty": int(item.get("wbillQty") or 0),              # 今日仓单量
-                "diff": int(item.get("diff") or 0),                      # 净变化量
+                "regWbillQty": int(item.get("regWbillQty") or 0),
+                "logoutWbillQty": int(item.get("logoutWbillQty") or 0),
+                "wbillQty": int(item.get("wbillQty") or 0),
+                "diff": int(item.get("diff") or 0),
             }
         elif order in ("lc", "ps", "si") and item.get("whAbbr"):
             details.setdefault(order, []).append({
@@ -58,43 +61,105 @@ def process_data(raw: dict) -> dict | None:
     return {"summary": targets, "details": details}
 
 
+def fmt_date(d: str) -> str:
+    return f"{d[:4]}-{d[4:6]}-{d[6:]}"
+
+
 def main():
     script_dir = Path(__file__).parent
     out_path = script_dir / "data.json"
 
-    today = datetime.now()
-    result = None
-    used_date = None
+    # 保留旧 history
+    old_history = []
+    if out_path.exists():
+        try:
+            old = json.loads(out_path.read_text(encoding="utf-8"))
+            old_history = old.get("history") or []
+        except Exception:
+            pass
 
-    for i in range(10):  # 最多回溯 10 天找最近交易日
+    today = datetime.now()
+    snaps = []  # (date_raw, processed)
+
+    for i in range(0, 40):
         d = (today - timedelta(days=i)).strftime("%Y%m%d")
         try:
             raw = get_gfex_data(d)
             processed = process_data(raw)
             if processed:
-                result = {
-                    "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "data_date": f"{d[:4]}-{d[4:6]}-{d[6:]}",
-                    "data_date_raw": d,
-                    "summary": processed["summary"],
-                    "details": processed["details"],
-                    "source": "广州期货交易所 仓单日报 http://www.gfex.com.cn/gfex/cdrb/hqsj_tjsj.shtml",
-                }
-                used_date = d
-                break
+                snaps.append((d, processed))
+                if len(snaps) >= 22:
+                    break
         except Exception as e:
             print(f"[跳过] {d}: {e}")
             continue
 
-    if result is None:
+    if not snaps:
         print("错误：未能获取到有效仓单数据")
         return 1
 
+    latest_d, latest = snaps[0]
+    week_d, week = snaps[min(5, len(snaps) - 1)]
+    month_d, month = snaps[min(20, len(snaps) - 1)]
+
+    summary = {}
+    for code in ("lc", "ps", "si"):
+        if code not in latest["summary"]:
+            continue
+        s = dict(latest["summary"][code])
+        w_qty = week["summary"].get(code, {}).get("wbillQty", s["wbillQty"])
+        m_qty = month["summary"].get(code, {}).get("wbillQty", s["wbillQty"])
+        s["weekDiff"] = s["wbillQty"] - w_qty
+        s["monthDiff"] = s["wbillQty"] - m_qty
+        s["weekBaseDate"] = fmt_date(week_d)
+        s["monthBaseDate"] = fmt_date(month_d)
+        summary[code] = s
+
+    details = {}
+    for code in ("lc", "ps", "si"):
+        week_map = {x["warehouse"]: x["today"] for x in week["details"].get(code, [])}
+        month_map = {x["warehouse"]: x["today"] for x in month["details"].get(code, [])}
+        rows = []
+        for wh in latest["details"].get(code, []):
+            name = wh["warehouse"]
+            w_base = week_map.get(name)
+            m_base = month_map.get(name)
+            week_diff = (wh["today"] - w_base) if w_base is not None else wh["today"]
+            month_diff = (wh["today"] - m_base) if m_base is not None else wh["today"]
+            rows.append({**wh, "weekDiff": week_diff, "monthDiff": month_diff})
+        details[code] = rows
+
+    # 更新 history：追加最新一天汇总
+    hist_map = {h["date"]: h for h in old_history}
+    hist_map[fmt_date(latest_d)] = {
+        "date": fmt_date(latest_d),
+        "lc": summary.get("lc", {}).get("wbillQty", 0),
+        "ps": summary.get("ps", {}).get("wbillQty", 0),
+        "si": summary.get("si", {}).get("wbillQty", 0),
+    }
+    history = sorted(hist_map.values(), key=lambda x: x["date"])
+
+    result = {
+        "update_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "data_date": fmt_date(latest_d),
+        "data_date_raw": latest_d,
+        "week_base_date": fmt_date(week_d),
+        "month_base_date": fmt_date(month_d),
+        "summary": summary,
+        "details": details,
+        "history": history,
+        "source": "广州期货交易所 仓单日报 http://www.gfex.com.cn/gfex/cdrb/hqsj_tjsj.shtml",
+    }
+
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✅ 已更新 data.json （数据日期: {used_date}）")
-    print("汇总：")
+    print(f"✅ 已更新 data.json （数据日期: {latest_d}）")
+    print(f"   周基准: {week_d}  月基准: {month_d}")
     for code, s in result["summary"].items():
-        print(f"  {s['variety']}({s['code']}): 注册 {s['regWbillQty']} | 注销 {s['logoutWbillQty']} | 净变化 {s['diff']:+d} | 今日仓单 {s['wbillQty']}")
+        print(
+            f"  {s['variety']}({s['code']}): "
+            f"日 {s['diff']:+d} | 周 {s['weekDiff']:+d} | 月 {s['monthDiff']:+d} | "
+            f"今日仓单 {s['wbillQty']}"
+        )
     return 0
 
 
