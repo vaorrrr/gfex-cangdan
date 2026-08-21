@@ -265,6 +265,7 @@
     }
     #geo-charts .chart-card { margin: 0; }
     #geo-charts .chart-wrap { height: 280px; }
+    #geo-charts .chart-wrap.line-wrap { height: 300px; }
     @media (max-width: 640px) {
       header h1 { font-size: 1.4rem; }
       .net-item .value { font-size: 1rem; }
@@ -793,13 +794,86 @@
     }
 
     function destroyGeoCharts() {
-      ["geo-prov", "geo-region"].forEach(k => {
+      ["geo-prov", "geo-region", "geo-prov-line", "geo-region-line"].forEach(k => {
         if (chartInstances[k]) {
           try { chartInstances[k].destroy(); } catch (e) {}
           delete chartInstances[k];
         }
       });
     }
+
+    function makeGeoLineChart(canvasId, dates, seriesNames, seriesMap, colorFn) {
+      const tick = getComputedStyle(document.documentElement).getPropertyValue("--chart-tick").trim() || "#8b9cb3";
+      const legend = getComputedStyle(document.documentElement).getPropertyValue("--chart-legend").trim() || "#c8d4e6";
+      const grid = getComputedStyle(document.documentElement).getPropertyValue("--chart-grid").trim() || "rgba(255,255,255,0.06)";
+      const datasets = seriesNames.map((name, i) => ({
+        label: name,
+        data: dates.map(d => {
+          const v = seriesMap[name] && seriesMap[name][d];
+          return v != null ? v : null;
+        }),
+        borderColor: colorFn(name, i),
+        backgroundColor: colorFn(name, i) + "22",
+        tension: 0.25,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+        spanGaps: true,
+        fill: false,
+      }));
+      return new Chart(document.getElementById(canvasId).getContext("2d"), {
+        type: "line",
+        data: { labels: dates, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: legend, usePointStyle: true, pointStyle: "circle", boxWidth: 8 } },
+            tooltip: {
+              callbacks: {
+                label: (item) => {
+                  if (item.parsed.y == null) return null;
+                  return item.dataset.label + ": " + Number(item.parsed.y).toLocaleString("zh-CN") + " 手";
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: tick, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+              grid: { color: grid }
+            },
+            y: {
+              ticks: { color: tick, callback: (v) => Number(v).toLocaleString("zh-CN") },
+              grid: { color: grid },
+              title: { display: true, text: "仓单量（手）", color: tick }
+            }
+          }
+        }
+      });
+    }
+
+    function buildGeoHistoryMaps(code) {
+      const dates = Object.keys(ALL_DAYS || {}).sort();
+      const provSeries = {};
+      const regionSeries = {};
+      dates.forEach(date => {
+        const snap = ALL_DAYS[date];
+        const rows = (snap.details && snap.details[code]) || [];
+        const { byProv, byRegion } = aggregateByGeo(rows);
+        Object.entries(byProv).forEach(([p, v]) => {
+          if (!provSeries[p]) provSeries[p] = {};
+          provSeries[p][date] = v;
+        });
+        Object.entries(byRegion).forEach(([r, v]) => {
+          if (!regionSeries[r]) regionSeries[r] = {};
+          regionSeries[r][date] = v;
+        });
+      });
+      return { dates, provSeries, regionSeries };
+    }
+
 
     function makeHBarChart(canvasId, labels, values, colors, xTitle) {
       const tick = getComputedStyle(document.documentElement).getPropertyValue("--chart-tick").trim() || "#8b9cb3";
@@ -908,6 +982,54 @@
         regionRanked.map(x => x[1]),
         regionRanked.map(x => regionColors[x[0]] || "#94a3b8")
       );
+
+      // 历史折线：按省份 / 区域汇总的仓单量随交易日变化
+      const hasHistory = ALL_DAYS && Object.keys(ALL_DAYS).length > 5;
+      if (hasHistory) {
+        const { dates, provSeries, regionSeries } = buildGeoHistoryMaps(active);
+        const provNames = provRanked.map(x => x[0]);
+        const regionNames = regionRanked.map(x => x[0]);
+
+        const provLineCard = document.createElement("div");
+        provLineCard.className = "chart-card " + (meta.class || "");
+        provLineCard.innerHTML = `
+          <div class="chart-header">
+            <div class="chart-title">分省份仓单历史<span>${meta.name} · 各省合计随交易日</span></div>
+          </div>
+          <div class="chart-wrap line-wrap"><canvas id="chart-geo-prov-line"></canvas></div>
+        `;
+        const regionLineCard = document.createElement("div");
+        regionLineCard.className = "chart-card " + (meta.class || "");
+        regionLineCard.innerHTML = `
+          <div class="chart-header">
+            <div class="chart-title">分区域仓单历史<span>七大区合计随交易日</span></div>
+          </div>
+          <div class="chart-wrap line-wrap"><canvas id="chart-geo-region-line"></canvas></div>
+        `;
+        container.appendChild(provLineCard);
+        container.appendChild(regionLineCard);
+
+        chartInstances["geo-prov-line"] = makeGeoLineChart(
+          "chart-geo-prov-line",
+          dates,
+          provNames,
+          provSeries,
+          (name, i) => provColors[i % provColors.length]
+        );
+        chartInstances["geo-region-line"] = makeGeoLineChart(
+          "chart-geo-region-line",
+          dates,
+          regionNames,
+          regionSeries,
+          (name, i) => regionColors[name] || provColors[i % provColors.length]
+        );
+      } else {
+        const tip = document.createElement("div");
+        tip.className = "chart-card";
+        tip.style.gridColumn = "1 / -1";
+        tip.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.9rem;">部署到网站或本地服务器打开后，将加载历史日数据并显示省份/区域仓单历史折线图。</div>';
+        container.appendChild(tip);
+      }
     }
 
     function buildTrademarkCharts(data) {
