@@ -257,17 +257,23 @@
       }
 
       const sorted = history.slice().sort((a, b) => a.date.localeCompare(b.date));
-      const labels = sorted.map(h => h.date);
       const years = [...new Set(sorted.map(h => h.date.slice(0, 4)))].sort();
-      const yearRange = years.length ? (years[0] + (years.length > 1 ? "–" + years[years.length - 1] : "")) : "";
+
+      // 收集所有出现过的月-日，作为同期对比横轴
+      const mdSet = new Set();
+      sorted.forEach(h => mdSet.add(h.date.slice(5))); // MM-DD
+      const mdLabels = [...mdSet].sort();
+
+      // date -> value lookup per year per variety built inside loop
 
       VARIETY_ORDER.forEach(code => {
         const meta = VARIETY_META[code];
         const card = document.createElement("div");
         card.className = "chart-card " + meta.class;
+        const yearRange = years.length ? (years[0] + (years.length > 1 ? "–" + years[years.length - 1] : "")) : "";
         card.innerHTML = `
           <div class="chart-header">
-            <div class="chart-title">${meta.name}<span>${yearRange} · 含各年全部数据</span></div>
+            <div class="chart-title">${meta.name}<span>多年同期对比 · ${yearRange}</span></div>
           </div>
           <div class="chart-wrap">
             <canvas id="chart-${code}"></canvas>
@@ -275,24 +281,32 @@
         `;
         container.appendChild(card);
 
-        // 每年一条线：仅在该年日期有数值，其余为 null，便于在同一时间轴上对比各年
+        // 每年：MM-DD -> 仓单量
+        const yearMaps = {};
+        years.forEach(y => {
+          yearMaps[y] = {};
+          sorted.filter(h => h.date.startsWith(y)).forEach(h => {
+            yearMaps[y][h.date.slice(5)] = h[code] || 0;
+          });
+        });
+
         const datasets = years.map((y, yi) => ({
           label: y + "年",
-          data: sorted.map(h => h.date.startsWith(y) ? (h[code] || 0) : null),
+          data: mdLabels.map(md => (yearMaps[y][md] != null ? yearMaps[y][md] : null)),
           borderColor: YEAR_COLORS[yi % YEAR_COLORS.length],
           backgroundColor: YEAR_COLORS[yi % YEAR_COLORS.length] + "22",
-          tension: 0.25,
-          pointRadius: sorted.filter(h => h.date.startsWith(y)).length > 50 ? 0 : 2,
-          pointHoverRadius: 4,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 5,
           borderWidth: 2,
-          spanGaps: false,
+          spanGaps: true,
           fill: false,
         }));
 
         const ctx = document.getElementById("chart-" + code).getContext("2d");
         chartInstances[code] = new Chart(ctx, {
           type: "line",
-          data: { labels, datasets },
+          data: { labels: mdLabels, datasets },
           options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -303,6 +317,10 @@
               },
               tooltip: {
                 callbacks: {
+                  title: (items) => {
+                    const md = items[0].label;
+                    return "同期 " + md;
+                  },
                   label: (item) => {
                     if (item.parsed.y == null) return null;
                     return item.dataset.label + ": " + Number(item.parsed.y).toLocaleString("zh-CN") + " 手";
@@ -312,17 +330,12 @@
             },
             scales: {
               x: {
+                title: { display: true, text: "月-日（多年对齐）", color: "#8b9cb3" },
                 ticks: {
                   color: "#8b9cb3",
                   maxRotation: 45,
                   autoSkip: true,
-                  maxTicksLimit: 12,
-                  callback: function(val, idx) {
-                    const label = this.getLabelForValue(val);
-                    if (!label) return "";
-                    // 显示年月，减少拥挤
-                    return label.slice(0, 7);
-                  }
+                  maxTicksLimit: 16,
                 },
                 grid: { color: "rgba(255,255,255,0.04)" }
               },
