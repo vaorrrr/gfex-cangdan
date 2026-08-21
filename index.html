@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>广期所仓单日报 · 多晶硅 / 工业硅 / 碳酸锂</title>
+  <meta name="description" content="每日自动更新广期所多晶硅、工业硅、碳酸锂标准仓单注册量、注销量与净变化量" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --card-hover: #243044;
+      --border: #2d3a4f;
+      --text: #e8eef7;
+      --text-muted: #8b9cb3;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --lc: #06b6d4;
+      --ps: #a855f7;
+      --si: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    header { text-align: center; margin-bottom: 2rem; }
+    header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    header .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;
+      margin-top: 1.25rem; font-size: 0.875rem; color: var(--text-muted);
+    }
+    .meta span {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 0.35rem 0.85rem; border-radius: 999px;
+    }
+    .meta .date-badge { color: var(--accent); border-color: rgba(59, 130, 246, 0.4); }
+    .actions { margin-top: 1rem; display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+    .refresh-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1.2rem; background: var(--accent); color: white;
+      border: none; border-radius: 8px; font-family: inherit; font-size: 0.9rem;
+      cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+    }
+    .refresh-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .refresh-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .refresh-btn.spinning .icon { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem; margin-bottom: 2.5rem;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.5rem; transition: transform 0.2s, background 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); background: var(--card-hover); }
+    .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .card.lc::before { background: var(--lc); }
+    .card.ps::before { background: var(--ps); }
+    .card.si::before { background: var(--si); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .card-title { font-size: 1.15rem; font-weight: 600; }
+    .card-code {
+      font-size: 0.75rem; font-weight: 500; padding: 0.2rem 0.55rem; border-radius: 6px;
+      background: rgba(255,255,255,0.06); color: var(--text-muted);
+    }
+    .main-diff { text-align: center; margin-bottom: 1.5rem; }
+    .main-diff .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .main-diff .value { font-size: 2.25rem; font-weight: 700; letter-spacing: -0.03em; }
+    .main-diff .value.up { color: var(--green); }
+    .main-diff .value.down { color: var(--red); }
+    .main-diff .value.flat { color: var(--text-muted); }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .stat { background: rgba(0,0,0,0.25); border-radius: 10px; padding: 0.75rem 0.9rem; }
+    .stat .label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.15rem; }
+    .stat .num { font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .stat.reg .num { color: var(--green); }
+    .stat.logout .num { color: var(--red); }
+    .section-title {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .section-title::before {
+      content: ""; width: 4px; height: 1.1em; background: var(--accent); border-radius: 2px;
+    }
+    .table-wrap {
+      overflow-x: auto; border-radius: 12px; border: 1px solid var(--border);
+      margin-bottom: 2rem; background: var(--card);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td {
+      padding: 0.7rem 1rem; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    th { background: rgba(0,0,0,0.3); color: var(--text-muted); font-weight: 500; font-size: 0.8rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .tab {
+      padding: 0.45rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted); cursor: pointer;
+      font-size: 0.875rem; font-family: inherit; transition: all 0.15s;
+    }
+    .tab:hover { background: var(--card); color: var(--text); }
+    .tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .detail-panel { display: none; }
+    .detail-panel.active { display: block; }
+    footer {
+      text-align: center; margin-top: 3rem; padding-top: 1.5rem;
+      border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    .loading { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+    .msg {
+      padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1.25rem;
+      font-size: 0.85rem; text-align: center; display: none;
+    }
+    .msg.info {
+      background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;
+    }
+    .msg.error {
+      background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;
+    }
+    .msg.success {
+      background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac;
+    }
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.4rem; }
+      .main-diff .value { font-size: 1.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>广期所仓单日报</h1>
+      <p class="subtitle">多晶硅 · 工业硅 · 碳酸锂 · 注册量 / 注销量 / 净变化</p>
+      <div class="meta" id="meta">
+        <span class="date-badge" id="data-date">加载中…</span>
+        <span id="update-time">—</span>
+      </div>
+      <div class="actions">
+        <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">
+          <span class="icon">↻</span> 刷新数据
+        </button>
+      </div>
+    </header>
+
+    <div id="msg" class="msg"></div>
+    <div id="loading" class="loading">正在加载仓单数据…</div>
+
+    <div id="content" style="display:none;">
+      <div class="cards" id="cards"></div>
+      <h2 class="section-title">分仓库明细</h2>
+      <div class="tabs" id="tabs"></div>
+      <div id="detail-panels"></div>
+    </div>
+
+    <footer>
+      <p>数据来源：<a href="http://www.gfex.com.cn/gfex/cdrb/hqsj_tjsj.shtml" target="_blank" rel="noopener">广州期货交易所 · 仓单日报</a></p>
+      <p style="margin-top:0.4rem;">本站仅作数据展示，不构成任何投资建议。</p>
+    </footer>
+  </div>
+
+  <script>
+    // 嵌入数据：保证双击本地文件也能直接打开
+    const EMBEDDED_DATA = {"update_time": "2026-08-20 08:56:29", "data_date": "2026-08-20", "data_date_raw": "20260820", "summary": {"lc": {"variety": "碳酸锂", "code": "LC", "lastWbillQty": 38608, "regWbillQty": 725, "logoutWbillQty": 0, "wbillQty": 39333, "diff": 725}, "ps": {"variety": "多晶硅", "code": "PS", "lastWbillQty": 22580, "regWbillQty": 250, "logoutWbillQty": 0, "wbillQty": 22830, "diff": 250}, "si": {"variety": "工业硅", "code": "SI", "lastWbillQty": 33511, "regWbillQty": 24, "logoutWbillQty": 0, "wbillQty": 33535, "diff": 24}}, "details": {"lc": [{"warehouse": "象屿速传上海", "last": 5256, "reg": 90, "logout": 0, "today": 5346, "diff": 90}, {"warehouse": "外运龙泉驿", "last": 6074, "reg": 330, "logout": 0, "today": 6404, "diff": 330}, {"warehouse": "中储临港", "last": 60, "reg": 0, "logout": 0, "today": 60, "diff": 0}, {"warehouse": "建发上海", "last": 1130, "reg": 150, "logout": 0, "today": 1280, "diff": 150}, {"warehouse": "中远海运临港", "last": 350, "reg": 0, "logout": 0, "today": 350, "diff": 0}, {"warehouse": "天诚高新", "last": 5058, "reg": 0, "logout": 0, "today": 5058, "diff": 0}, {"warehouse": "中远海运镇江", "last": 10627, "reg": 155, "logout": 0, "today": 10782, "diff": 155}, {"warehouse": "五矿无锡", "last": 542, "reg": 0, "logout": 0, "today": 542, "diff": 0}, {"warehouse": "江苏奔牛港务", "last": 101, "reg": 0, "logout": 0, "today": 101, "diff": 0}, {"warehouse": "永兴特钢", "last": 120, "reg": 0, "logout": 0, "today": 120, "diff": 0}, {"warehouse": "中远海运南昌", "last": 7040, "reg": 0, "logout": 0, "today": 7040, "diff": 0}, {"warehouse": "融捷集团", "last": 900, "reg": 0, "logout": 0, "today": 900, "diff": 0}, {"warehouse": "广东邦普（广东佛山）", "last": 750, "reg": 0, "logout": 0, "today": 750, "diff": 0}, {"warehouse": "广东邦普（湖北宜昌）", "last": 600, "reg": 0, "logout": 0, "today": 600, "diff": 0}], "ps": [{"warehouse": "中物流（石河子）", "last": 1540, "reg": 0, "logout": 0, "today": 1540, "diff": 0}, {"warehouse": "中物流（石河子）", "last": 200, "reg": 0, "logout": 0, "today": 200, "diff": 0}, {"warehouse": "中物流（石河子）", "last": 1650, "reg": 0, "logout": 0, "today": 1650, "diff": 0}, {"warehouse": "中疆物流三工镇物流园", "last": 2180, "reg": 0, "logout": 0, "today": 2180, "diff": 0}, {"warehouse": "中疆物流三工镇物流园", "last": 20, "reg": 0, "logout": 0, "today": 20, "diff": 0}, {"warehouse": "中铝物流包头", "last": 350, "reg": 0, "logout": 0, "today": 350, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 1000, "reg": 0, "logout": 0, "today": 1000, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 510, "reg": 0, "logout": 0, "today": 510, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 680, "reg": 0, "logout": 0, "today": 680, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 790, "reg": 0, "logout": 0, "today": 790, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 150, "reg": 0, "logout": 0, "today": 150, "diff": 0}, {"warehouse": "国贸泰达包头", "last": 300, "reg": 0, "logout": 0, "today": 300, "diff": 0}, {"warehouse": "建发包头", "last": 100, "reg": 150, "logout": 0, "today": 250, "diff": 150}, {"warehouse": "建发包头", "last": 1260, "reg": 0, "logout": 0, "today": 1260, "diff": 0}, {"warehouse": "建发包头", "last": 310, "reg": 0, "logout": 0, "today": 310, "diff": 0}, {"warehouse": "建发包头", "last": 1180, "reg": 0, "logout": 0, "today": 1180, "diff": 0}, {"warehouse": "中远海运成都青白江", "last": 970, "reg": 30, "logout": 0, "today": 1000, "diff": 30}, {"warehouse": "中远海运成都青白江", "last": 330, "reg": 70, "logout": 0, "today": 400, "diff": 70}, {"warehouse": "中远海运成都青白江", "last": 200, "reg": 0, "logout": 0, "today": 200, "diff": 0}, {"warehouse": "中储成都双流", "last": 1500, "reg": 0, "logout": 0, "today": 1500, "diff": 0}, {"warehouse": "中储成都双流", "last": 60, "reg": 0, "logout": 0, "today": 60, "diff": 0}, {"warehouse": "中储成都双流", "last": 1000, "reg": 0, "logout": 0, "today": 1000, "diff": 0}, {"warehouse": "蒙特硅基（内蒙包头）", "last": 1000, "reg": 0, "logout": 0, "today": 1000, "diff": 0}, {"warehouse": "新特能源（新疆乌鲁木齐）", "last": 1900, "reg": 0, "logout": 0, "today": 1900, "diff": 0}, {"warehouse": "新特准东", "last": 2000, "reg": 0, "logout": 0, "today": 2000, "diff": 0}, {"warehouse": "杭州正才（中物流（石河子））", "last": 1400, "reg": 0, "logout": 0, "today": 1400, "diff": 0}], "si": [{"warehouse": "中储吴淞", "last": 108, "reg": 0, "logout": 0, "today": 108, "diff": 0}, {"warehouse": "象屿速传上海", "last": 2964, "reg": 0, "logout": 0, "today": 2964, "diff": 0}, {"warehouse": "中物流（常州）", "last": 5578, "reg": 0, "logout": 0, "today": 5578, "diff": 0}, {"warehouse": "中储成都天一", "last": 192, "reg": 0, "logout": 0, "today": 192, "diff": 0}, {"warehouse": "中物流（乌鲁木齐）", "last": 1126, "reg": 0, "logout": 0, "today": 1126, "diff": 0}, {"warehouse": "中储新港", "last": 2944, "reg": 0, "logout": 0, "today": 2944, "diff": 0}, {"warehouse": "中储陆通（四经支路1号）", "last": 961, "reg": 0, "logout": 0, "today": 961, "diff": 0}, {"warehouse": "外运天津滨海", "last": 2298, "reg": 0, "logout": 0, "today": 2298, "diff": 0}, {"warehouse": "中远海运滨海", "last": 1327, "reg": 0, "logout": 0, "today": 1327, "diff": 0}, {"warehouse": "建发天津滨海", "last": 294, "reg": 0, "logout": 0, "today": 294, "diff": 0}, {"warehouse": "建发高科（外运龙泉驿）", "last": 872, "reg": 0, "logout": 0, "today": 872, "diff": 0}, {"warehouse": "建发高科（建发天津滨海）", "last": 851, "reg": 0, "logout": 0, "today": 851, "diff": 0}, {"warehouse": "物产中大资本（云铝物流）", "last": 600, "reg": 0, "logout": 0, "today": 600, "diff": 0}, {"warehouse": "银河德睿（外运昆明）", "last": 300, "reg": 0, "logout": 0, "today": 300, "diff": 0}, {"warehouse": "特变电工（建发天津东丽）", "last": 1050, "reg": 0, "logout": 0, "today": 1050, "diff": 0}, {"warehouse": "中物流（石河子）", "last": 12, "reg": 0, "logout": 0, "today": 12, "diff": 0}, {"warehouse": "炬申新疆", "last": 36, "reg": 0, "logout": 0, "today": 36, "diff": 0}, {"warehouse": "中储陆通（一纬路9号）", "last": 3910, "reg": 0, "logout": 0, "today": 3910, "diff": 0}, {"warehouse": "外运天津西青", "last": 996, "reg": 24, "logout": 0, "today": 1020, "diff": 24}, {"warehouse": "建发天津东丽", "last": 3172, "reg": 0, "logout": 0, "today": 3172, "diff": 0}, {"warehouse": "国贸有色矿产（象屿速传上海）", "last": 320, "reg": 0, "logout": 0, "today": 320, "diff": 0}, {"warehouse": "新疆戈恩斯", "last": 1050, "reg": 0, "logout": 0, "today": 1050, "diff": 0}, {"warehouse": "特变电工（中疆物流昌吉物流园）", "last": 600, "reg": 0, "logout": 0, "today": 600, "diff": 0}, {"warehouse": "国贸有色矿产（外运天津滨海）", "last": 300, "reg": 0, "logout": 0, "today": 300, "diff": 0}, {"warehouse": "国贸有色矿产（中远海运滨海）", "last": 300, "reg": 0, "logout": 0, "today": 300, "diff": 0}, {"warehouse": "浙江四邦（青岛港物流）", "last": 600, "reg": 0, "logout": 0, "today": 600, "diff": 0}, {"warehouse": "浙江四邦（外运昆明）", "last": 300, "reg": 0, "logout": 0, "today": 300, "diff": 0}, {"warehouse": "浙商中拓（外运昆明）", "last": 450, "reg": 0, "logout": 0, "today": 450, "diff": 0}]}, "source": "广州期货交易所 仓单日报 http://www.gfex.com.cn/gfex/cdrb/hqsj_tjsj.shtml"};
+
+    const VARIETY_ORDER = ["lc", "ps", "si"];
+    const VARIETY_META = {
+      lc: { name: "碳酸锂", class: "lc" },
+      ps: { name: "多晶硅", class: "ps" },
+      si: { name: "工业硅", class: "si" },
+    };
+
+    function fmt(n) {
+      if (n == null || isNaN(n)) return "—";
+      return Number(n).toLocaleString("zh-CN");
+    }
+    function fmtDiff(n) {
+      if (n == null || isNaN(n)) return "—";
+      return (n > 0 ? "+" : "") + Number(n).toLocaleString("zh-CN");
+    }
+    function diffClass(n) {
+      if (n > 0) return "up";
+      if (n < 0) return "down";
+      return "flat";
+    }
+    function posNegClass(n) {
+      if (n > 0) return "pos";
+      if (n < 0) return "neg";
+      return "";
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById("msg");
+      el.className = "msg " + (type || "info");
+      el.textContent = text;
+      el.style.display = "block";
+    }
+    function hideMsg() {
+      document.getElementById("msg").style.display = "none";
+    }
+
+    function render(data) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("content").style.display = "block";
+
+      document.getElementById("data-date").textContent = "数据日期：" + data.data_date;
+      document.getElementById("update-time").textContent = "更新于 " + data.update_time;
+
+      const cardsEl = document.getElementById("cards");
+      cardsEl.innerHTML = VARIETY_ORDER.map(code => {
+        const s = data.summary[code];
+        if (!s) return "";
+        const meta = VARIETY_META[code];
+        return `
+          <div class="card ${meta.class}">
+            <div class="card-header">
+              <div class="card-title">${s.variety}</div>
+              <div class="card-code">${s.code}</div>
+            </div>
+            <div class="main-diff">
+              <div class="label">净变化量（手）</div>
+              <div class="value ${diffClass(s.diff)}">${fmtDiff(s.diff)}</div>
+            </div>
+            <div class="stats">
+              <div class="stat reg">
+                <div class="label">注册量</div>
+                <div class="num">${fmt(s.regWbillQty)}</div>
+              </div>
+              <div class="stat logout">
+                <div class="label">注销量</div>
+                <div class="num">${fmt(s.logoutWbillQty)}</div>
+              </div>
+              <div class="stat">
+                <div class="label">今日仓单</div>
+                <div class="num">${fmt(s.wbillQty)}</div>
+              </div>
+              <div class="stat">
+                <div class="label">昨日仓单</div>
+                <div class="num">${fmt(s.lastWbillQty)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const tabsEl = document.getElementById("tabs");
+      const panelsEl = document.getElementById("detail-panels");
+      tabsEl.innerHTML = "";
+      panelsEl.innerHTML = "";
+
+      VARIETY_ORDER.forEach((code, idx) => {
+        const s = data.summary[code];
+        const list = (data.details && data.details[code]) || [];
+        if (!s) return;
+
+        const tab = document.createElement("button");
+        tab.className = "tab" + (idx === 0 ? " active" : "");
+        tab.textContent = s.variety;
+        tab.onclick = () => {
+          document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+          document.querySelectorAll(".detail-panel").forEach(p => p.classList.remove("active"));
+          tab.classList.add("active");
+          document.getElementById("panel-" + code).classList.add("active");
+        };
+        tabsEl.appendChild(tab);
+
+        const panel = document.createElement("div");
+        panel.className = "detail-panel" + (idx === 0 ? " active" : "");
+        panel.id = "panel-" + code;
+
+        if (!list.length) {
+          panel.innerHTML = `<div class="table-wrap" style="padding:1.5rem;text-align:center;color:var(--text-muted);">暂无仓库明细</div>`;
+        } else {
+          const rows = list.map(w => `
+            <tr>
+              <td>${w.warehouse}</td>
+              <td>${fmt(w.last)}</td>
+              <td class="pos">${fmt(w.reg)}</td>
+              <td class="neg">${fmt(w.logout)}</td>
+              <td>${fmt(w.today)}</td>
+              <td class="${posNegClass(w.diff)}">${fmtDiff(w.diff)}</td>
+            </tr>
+          `).join("");
+          panel.innerHTML = `
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>仓库 / 厂库</th>
+                    <th>昨日仓单</th>
+                    <th>注册量</th>
+                    <th>注销量</th>
+                    <th>今日仓单</th>
+                    <th>净变化</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          `;
+        }
+        panelsEl.appendChild(panel);
+      });
+    }
+
+    async function refreshData() {
+      const btn = document.getElementById("refresh-btn");
+      btn.disabled = true;
+      btn.classList.add("spinning");
+      hideMsg();
+
+      // 本地 file:// 协议下无法 fetch，直接提示
+      if (location.protocol === "file:") {
+        showMsg("当前是本地双击打开，无法在线刷新。请用「python -m http.server」打开，或部署到 GitHub Pages 后刷新即可获取最新 data.json。", "info");
+        btn.disabled = false;
+        btn.classList.remove("spinning");
+        return;
+      }
+
+      try {
+        const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (!data.summary) throw new Error("数据格式异常");
+        render(data);
+        showMsg("已刷新到最新数据（" + data.data_date + "）", "success");
+        setTimeout(hideMsg, 3000);
+      } catch (e) {
+        showMsg("刷新失败：" + e.message + "。已保留当前显示数据。", "error");
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove("spinning");
+      }
+    }
+
+    // 启动：优先用嵌入数据，保证双击可用
+    try {
+      render(EMBEDDED_DATA);
+      if (location.protocol === "file:") {
+        showMsg("本地嵌入数据版本，双击即可查看。点击「刷新数据」在本地无效；部署到网站或用本地服务器后可刷新 data.json。", "info");
+      }
+    } catch (e) {
+      document.getElementById("loading").style.display = "none";
+      showMsg("数据加载失败：" + e.message, "error");
+    }
+  </script>
+</body>
+</html>
