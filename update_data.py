@@ -49,7 +49,8 @@ def process_data(raw: dict) -> dict | None:
             }
         elif order in ("lc", "ps", "si") and item.get("whAbbr"):
             details.setdefault(order, []).append({
-                "warehouse": item.get("whAbbr"),
+                "warehouse": item.get("whAbbr") or "",
+                "trademark": (item.get("trademarkName") or "").strip(),
                 "last": int(item.get("lastWbillQty") or 0),
                 "reg": int(item.get("regWbillQty") or 0),
                 "logout": int(item.get("logoutWbillQty") or 0),
@@ -115,15 +116,18 @@ def main():
         s["monthBaseDate"] = fmt_date(month_d)
         summary[code] = s
 
+    def row_key(wh):
+        return (wh.get("warehouse") or "", wh.get("trademark") or "")
+
     details = {}
     for code in ("lc", "ps", "si"):
-        week_map = {x["warehouse"]: x["today"] for x in week["details"].get(code, [])}
-        month_map = {x["warehouse"]: x["today"] for x in month["details"].get(code, [])}
+        week_map = {row_key(x): x["today"] for x in week["details"].get(code, [])}
+        month_map = {row_key(x): x["today"] for x in month["details"].get(code, [])}
         rows = []
         for wh in latest["details"].get(code, []):
-            name = wh["warehouse"]
-            w_base = week_map.get(name)
-            m_base = month_map.get(name)
+            k = row_key(wh)
+            w_base = week_map.get(k)
+            m_base = month_map.get(k)
             week_diff = (wh["today"] - w_base) if w_base is not None else wh["today"]
             month_diff = (wh["today"] - m_base) if m_base is not None else wh["today"]
             rows.append({**wh, "weekDiff": week_diff, "monthDiff": month_diff})
