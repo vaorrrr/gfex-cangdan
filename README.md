@@ -57,6 +57,9 @@ https://你的用户名.github.io/gfex-cangdan/
 
 ## 二、本地使用
 
+依赖：`pip install requests selenium`，并安装 Chrome/Chromium（官网有反爬时脚本会自动用无头浏览器过验证）。
+
+
 ```bash
 # 更新数据
 python3 update_data.py
