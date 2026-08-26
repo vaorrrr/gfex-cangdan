@@ -49,7 +49,7 @@ https://你的用户名.github.io/gfex-cangdan/
 ### 第 5 步：开启自动更新（重要）
 1. 进入仓库的 **Actions** 标签页
 2. 如果提示开启 Workflow，点击 **I understand my workflows, go ahead and enable them**
-3. 之后每天北京时间 **16:00** 会自动运行一次，更新当天仓单数据
+3. 之后每个工作日北京时间 **15:40** 会自动运行一次，更新当天仓单数据（16:20 再补跑一次）
 
 也可以随时在 Actions 页面手动点击 **Run workflow** 立即更新。
 
