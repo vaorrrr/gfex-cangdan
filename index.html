@@ -322,7 +322,7 @@
       <h2 class="section-title">多晶硅分商标仓单<span class="hint">按商标汇总 · 点击日期可切换当日结构</span></h2>
       <div id="tm-charts"></div>
 
-      <h2 class="section-title">分仓库明细<span class="hint" id="wh-hint">点击仓库行查看季节性图 · 库容为交易所公布的最低保障库容/厂库标准仓单最大量</span></h2>
+      <h2 class="section-title">分仓库明细<span class="hint" id="wh-hint">点击仓库行查看季节性图 · 仓库为最低保障库容，厂库为标准仓单最大量</span></h2>
       <div class="tabs" id="tabs"></div>
       <div id="geo-charts"></div>
       <div id="detail-panels"></div>
@@ -597,72 +597,73 @@
 
     // 合约吨/手；库容为吨（仓库=交易所公布最低保障库容，厂库=标准仓单最大量）
     const LOT_TONS = { lc: 1, ps: 3, si: 5 };
-    const WAREHOUSE_CAP_TONS = {
+    // tons: 吨；kind: "保障"=最低保障库容（仓库），"上限"=厂库标准仓单最大量
+    const WAREHOUSE_CAP = {
       lc: {
-        "象屿速传上海": 2000,
-        "外运龙泉驿": 2000,
-        "中储临港": 2000,
-        "建发上海": 2000,
-        "中远海运临港": 2000,
-        "天诚高新": 2000,
-        "中远海运镇江": 2000,
-        "五矿无锡": 2000,
-        "江苏奔牛港务": 2000,
-        "永兴特钢": 900,
-        "中远海运南昌": 2000,
-        "融捷集团": 900,
-        "广东邦普（广东佛山）": 1500,
-        "广东邦普（湖北宜昌）": 1500,
-        "四川雅化": 900
+        "象屿速传上海": { tons: 2000, kind: "保障" },
+        "外运龙泉驿": { tons: 2000, kind: "保障" },
+        "中储临港": { tons: 2000, kind: "保障" },
+        "建发上海": { tons: 2000, kind: "保障" },
+        "中远海运临港": { tons: 2000, kind: "保障" },
+        "天诚高新": { tons: 2000, kind: "保障" },
+        "中远海运镇江": { tons: 2000, kind: "保障" },
+        "五矿无锡": { tons: 2000, kind: "保障" },
+        "江苏奔牛港务": { tons: 2000, kind: "保障" },
+        "永兴特钢": { tons: 900, kind: "上限" },
+        "中远海运南昌": { tons: 2000, kind: "保障" },
+        "融捷集团": { tons: 900, kind: "上限" },
+        "广东邦普（广东佛山）": { tons: 1500, kind: "上限" },
+        "广东邦普（湖北宜昌）": { tons: 1500, kind: "上限" },
+        "四川雅化": { tons: 900, kind: "上限" }
       },
       ps: {
-        "中物流（石河子）": 3000,
-        "中疆物流三工镇物流园": 3000,
-        "中铝物流包头": 3000,
-        "国贸泰达包头": 3000,
-        "建发包头": 3000,
-        "中远海运成都青白江": 3000,
-        "中储成都双流": 3000,
-        "蒙特硅基（内蒙包头）": 3000,
-        "新特能源（新疆乌鲁木齐）": 5700,
-        "新特准东": 6000,
-        "杭州正才（中物流（石河子））": 3000
+        "中物流（石河子）": { tons: 15000, kind: "保障" },
+        "中疆物流三工镇物流园": { tons: 10000, kind: "保障" },
+        "中铝物流包头": { tons: 10000, kind: "保障" },
+        "国贸泰达包头": { tons: 10000, kind: "保障" },
+        "建发包头": { tons: 10000, kind: "保障" },
+        "中远海运成都青白江": { tons: 10000, kind: "保障" },
+        "中储成都双流": { tons: 10000, kind: "保障" },
+        "蒙特硅基（内蒙包头）": { tons: 3000, kind: "上限" },
+        "新特能源（新疆乌鲁木齐）": { tons: 5700, kind: "上限" },
+        "新特准东": { tons: 6000, kind: "上限" },
+        "杭州正才（中物流（石河子））": { tons: 15000, kind: "保障" }
       },
       si: {
-        "中储吴淞": 10000,
-        "象屿速传上海": 10000,
-        "中物流（常州）": 10000,
-        "中储成都天一": 5000,
-        "中物流（乌鲁木齐）": 5000,
-        "中储新港": 10000,
-        "中储陆通（四经支路1号）": 5000,
-        "外运天津滨海": 10000,
-        "中远海运滨海": 10000,
-        "建发天津滨海": 10000,
-        "建发高科（外运龙泉驿）": 4500,
-        "建发高科（建发天津滨海）": 4500,
-        "物产中大资本（云铝物流）": 3000,
-        "银河德睿（外运昆明）": 3000,
-        "特变电工（建发天津东丽）": 5250,
-        "中物流（石河子）": 5000,
-        "炬申新疆": 5000,
-        "中储陆通（一纬路9号）": 10000,
-        "外运天津西青": 5000,
-        "建发天津东丽": 10000,
-        "国贸有色矿产（象屿速传上海）": 4500,
-        "新疆戈恩斯": 4500,
-        "特变电工（中疆物流昌吉物流园）": 5250,
-        "国贸有色矿产（外运天津滨海）": 4500,
-        "国贸有色矿产（中远海运滨海）": 4500,
-        "浙江四邦（青岛港物流）": 4500,
-        "浙江四邦（外运昆明）": 4500,
-        "浙商中拓（外运昆明）": 4500
+        "中储吴淞": { tons: 10000, kind: "保障" },
+        "象屿速传上海": { tons: 10000, kind: "保障" },
+        "中物流（常州）": { tons: 10000, kind: "保障" },
+        "中储成都天一": { tons: 10000, kind: "保障" },
+        "中物流（乌鲁木齐）": { tons: 20000, kind: "保障" },
+        "中储新港": { tons: 10000, kind: "保障" },
+        "中储陆通（四经支路1号）": { tons: 5000, kind: "保障" },
+        "外运天津滨海": { tons: 10000, kind: "保障" },
+        "中远海运滨海": { tons: 10000, kind: "保障" },
+        "建发天津滨海": { tons: 10000, kind: "保障" },
+        "建发高科（外运龙泉驿）": { tons: 4500, kind: "上限" },
+        "建发高科（建发天津滨海）": { tons: 4500, kind: "上限" },
+        "物产中大资本（云铝物流）": { tons: 3000, kind: "上限" },
+        "银河德睿（外运昆明）": { tons: 3000, kind: "上限" },
+        "特变电工（建发天津东丽）": { tons: 5250, kind: "上限" },
+        "中物流（石河子）": { tons: 5000, kind: "保障" },
+        "炬申新疆": { tons: 5000, kind: "保障" },
+        "中储陆通（一纬路9号）": { tons: 10000, kind: "保障" },
+        "外运天津西青": { tons: 5000, kind: "保障" },
+        "建发天津东丽": { tons: 10000, kind: "保障" },
+        "国贸有色矿产（象屿速传上海）": { tons: 4500, kind: "上限" },
+        "新疆戈恩斯": { tons: 4500, kind: "上限" },
+        "特变电工（中疆物流昌吉物流园）": { tons: 5250, kind: "上限" },
+        "国贸有色矿产（外运天津滨海）": { tons: 4500, kind: "上限" },
+        "国贸有色矿产（中远海运滨海）": { tons: 4500, kind: "上限" },
+        "浙江四邦（青岛港物流）": { tons: 4500, kind: "上限" },
+        "浙江四邦（外运昆明）": { tons: 4500, kind: "上限" },
+        "浙商中拓（外运昆明）": { tons: 4500, kind: "上限" }
       }
     };
 
-    function lookupCapTons(code, warehouse) {
-      const map = WAREHOUSE_CAP_TONS[code] || {};
-      return map[warehouse] != null ? map[warehouse] : null;
+    function lookupCap(code, warehouse) {
+      const map = WAREHOUSE_CAP[code] || {};
+      return map[warehouse] || null;
     }
 
     function warehouseUsedTons(list, warehouse, code) {
@@ -679,16 +680,20 @@
     }
 
     function capCellHtml(code, warehouse, list) {
-      const cap = lookupCapTons(code, warehouse);
-      if (cap == null) return { cap: "—", occ: "—" };
+      const rec = lookupCap(code, warehouse);
+      if (!rec) return { cap: "—", occ: "—" };
+      const cap = rec.tons;
       const used = warehouseUsedTons(list, warehouse, code);
       const pct = cap > 0 ? (used / cap) * 100 : 0;
       const unit = LOT_TONS[code] || 1;
       const capLots = cap / unit;
-      const capText = cap.toLocaleString("zh-CN") + " 吨<span style='color:var(--text-muted);font-weight:400'> / " +
-        Number(capLots.toFixed(0)).toLocaleString("zh-CN") + " 手</span>";
+      const kindLabel = rec.kind === "上限" ? "厂库上限" : "最低保障";
+      const capText = cap.toLocaleString("zh-CN") + " 吨"
+        + "<div style='font-size:0.7rem;color:var(--text-muted);font-weight:400'>" + kindLabel
+        + " · " + Number(capLots.toFixed(0)).toLocaleString("zh-CN") + " 手</div>";
       const w = Math.max(0, Math.min(100, pct));
-      const occ = `<span class="occ-cell ${occClass(pct)}"><span class="occ-bar"><i style="width:${w.toFixed(1)}%"></i></span>${pct.toFixed(1)}%</span>`;
+      const pctText = pct > 100 ? pct.toFixed(0) + "%" : pct.toFixed(1) + "%";
+      const occ = `<span class="occ-cell ${occClass(pct)}"><span class="occ-bar"><i style="width:${w.toFixed(1)}%"></i></span>${pctText}</span>`;
       return { cap: capText, occ };
     }
 
@@ -1511,14 +1516,14 @@
                     <th>日变化</th>
                     <th>周变化</th>
                     <th>月变化</th>
-                    <th>最大库容</th>
+                    <th>核定库容</th>
                     <th>占用比例</th>
                   </tr>
                 </thead>
                 <tbody>${rows}</tbody>
               </table>
             </div>
-            <p class="cap-note">占用比例按该仓库全部商标仓单合计（吨）÷ 核定库容计算。碳酸锂 1 吨/手，多晶硅 3 吨/手，工业硅 5 吨/手。未公布库容的仓库显示为 —。</p>
+            <p class="cap-note">仓库列示交易所公布的最低保障库容（部分品种可视为可用上限）；厂库列示标准仓单最大量。占用=该库全部商标仓单合计（吨）÷核定库容。碳酸锂1吨/手、多晶硅3吨/手、工业硅5吨/手。保障库容被突破时比例可超过100%，说明实际库容大于最低保障。</p>
           `;
         }
         panelsEl.appendChild(panel);
