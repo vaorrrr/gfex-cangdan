@@ -600,17 +600,17 @@
     // tons: 吨；kind: "保障"=最低保障库容（仓库），"上限"=厂库标准仓单最大量
     const WAREHOUSE_CAP = {
       lc: {
-        "象屿速传上海": { tons: 2000, kind: "保障" },
-        "外运龙泉驿": { tons: 2000, kind: "保障" },
-        "中储临港": { tons: 2000, kind: "保障" },
-        "建发上海": { tons: 2000, kind: "保障" },
-        "中远海运临港": { tons: 2000, kind: "保障" },
-        "天诚高新": { tons: 2000, kind: "保障" },
-        "中远海运镇江": { tons: 2000, kind: "保障" },
-        "五矿无锡": { tons: 2000, kind: "保障" },
-        "江苏奔牛港务": { tons: 2000, kind: "保障" },
+        "象屿速传上海": { tons: 5000, kind: "保障" },
+        "外运龙泉驿": { tons: 5000, kind: "保障" },
+        "中储临港": { tons: 5000, kind: "保障" },
+        "建发上海": { tons: 5000, kind: "保障" },
+        "中远海运临港": { tons: 5000, kind: "保障" },
+        "天诚高新": { tons: 5000, kind: "保障" },
+        "中远海运镇江": { tons: 5000, kind: "保障" },
+        "五矿无锡": { tons: 5000, kind: "保障" },
+        "江苏奔牛港务": { tons: 5000, kind: "保障" },
         "永兴特钢": { tons: 900, kind: "上限" },
-        "中远海运南昌": { tons: 2000, kind: "保障" },
+        "中远海运南昌": { tons: 5000, kind: "保障" },
         "融捷集团": { tons: 900, kind: "上限" },
         "广东邦普（广东佛山）": { tons: 1500, kind: "上限" },
         "广东邦普（湖北宜昌）": { tons: 1500, kind: "上限" },
@@ -687,12 +687,14 @@
       const pct = cap > 0 ? (used / cap) * 100 : 0;
       const unit = LOT_TONS[code] || 1;
       const capLots = cap / unit;
-      const kindLabel = rec.kind === "上限" ? "厂库上限" : "最低保障";
+      const isMax = rec.kind === "上限";
+      const kindLabel = isMax ? "厂库上限" : "最低保障（非硬上限）";
       const capText = cap.toLocaleString("zh-CN") + " 吨"
         + "<div style='font-size:0.7rem;color:var(--text-muted);font-weight:400'>" + kindLabel
         + " · " + Number(capLots.toFixed(0)).toLocaleString("zh-CN") + " 手</div>";
       const w = Math.max(0, Math.min(100, pct));
-      const pctText = pct > 100 ? pct.toFixed(0) + "%" : pct.toFixed(1) + "%";
+      let pctText = (pct > 100 ? pct.toFixed(0) : pct.toFixed(1)) + "%";
+      if (!isMax && pct > 100) pctText += "<div style='font-size:0.68rem;color:var(--text-muted)'>已超保障</div>";
       const occ = `<span class="occ-cell ${occClass(pct)}"><span class="occ-bar"><i style="width:${w.toFixed(1)}%"></i></span>${pctText}</span>`;
       return { cap: capText, occ };
     }
@@ -1523,7 +1525,7 @@
                 <tbody>${rows}</tbody>
               </table>
             </div>
-            <p class="cap-note">仓库列示交易所公布的最低保障库容（部分品种可视为可用上限）；厂库列示标准仓单最大量。占用=该库全部商标仓单合计（吨）÷核定库容。碳酸锂1吨/手、多晶硅3吨/手、工业硅5吨/手。保障库容被突破时比例可超过100%，说明实际库容大于最低保障。</p>
+            <p class="cap-note">仓库数字是交易所公布的最低保障库容（碳酸锂仓库2023年已由2000吨调至5000吨），不是物理最大库容，仓单超过保障很常见。厂库才是标准仓单硬上限。占用=该库仓单合计（吨）÷核定库容。碳酸锂1吨/手、多晶硅3吨/手、工业硅5吨/手。</p>
           `;
         }
         panelsEl.appendChild(panel);
