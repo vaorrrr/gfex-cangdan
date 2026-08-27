@@ -266,6 +266,18 @@
     #geo-charts .chart-card { margin: 0; }
     #geo-charts .chart-wrap { height: 280px; }
     #geo-charts .chart-wrap.line-wrap { height: 300px; }
+
+    .occ-cell { white-space: nowrap; }
+    .occ-bar {
+      display: inline-block; width: 52px; height: 7px;
+      background: color-mix(in srgb, var(--text-muted) 25%, transparent);
+      border-radius: 99px; overflow: hidden; vertical-align: middle; margin-right: 6px;
+    }
+    .occ-bar > i { display: block; height: 100%; border-radius: 99px; }
+    .occ-low i { background: #34d399; }
+    .occ-mid i { background: #fbbf24; }
+    .occ-high i { background: #f87171; }
+    .cap-note { font-size: 0.75rem; color: var(--text-muted); margin: 0.4rem 0 0; }
     @media (max-width: 640px) {
       header h1 { font-size: 1.4rem; }
       .net-item .value { font-size: 1rem; }
@@ -310,7 +322,7 @@
       <h2 class="section-title">多晶硅分商标仓单<span class="hint">按商标汇总 · 点击日期可切换当日结构</span></h2>
       <div id="tm-charts"></div>
 
-      <h2 class="section-title">分仓库明细<span class="hint" id="wh-hint">点击仓库行查看季节性图</span></h2>
+      <h2 class="section-title">分仓库明细<span class="hint" id="wh-hint">点击仓库行查看季节性图 · 库容为交易所公布的最低保障库容/厂库标准仓单最大量</span></h2>
       <div class="tabs" id="tabs"></div>
       <div id="geo-charts"></div>
       <div id="detail-panels"></div>
@@ -582,6 +594,104 @@
       ps: { name: "多晶硅", class: "ps", color: "#a855f7" },
       si: { name: "工业硅", class: "si", color: "#10b981" },
     };
+
+    // 合约吨/手；库容为吨（仓库=交易所公布最低保障库容，厂库=标准仓单最大量）
+    const LOT_TONS = { lc: 1, ps: 3, si: 5 };
+    const WAREHOUSE_CAP_TONS = {
+      lc: {
+        "象屿速传上海": 2000,
+        "外运龙泉驿": 2000,
+        "中储临港": 2000,
+        "建发上海": 2000,
+        "中远海运临港": 2000,
+        "天诚高新": 2000,
+        "中远海运镇江": 2000,
+        "五矿无锡": 2000,
+        "江苏奔牛港务": 2000,
+        "永兴特钢": 900,
+        "中远海运南昌": 2000,
+        "融捷集团": 900,
+        "广东邦普（广东佛山）": 1500,
+        "广东邦普（湖北宜昌）": 1500,
+        "四川雅化": 900
+      },
+      ps: {
+        "中物流（石河子）": 3000,
+        "中疆物流三工镇物流园": 3000,
+        "中铝物流包头": 3000,
+        "国贸泰达包头": 3000,
+        "建发包头": 3000,
+        "中远海运成都青白江": 3000,
+        "中储成都双流": 3000,
+        "蒙特硅基（内蒙包头）": 3000,
+        "新特能源（新疆乌鲁木齐）": 5700,
+        "新特准东": 6000,
+        "杭州正才（中物流（石河子））": 3000
+      },
+      si: {
+        "中储吴淞": 10000,
+        "象屿速传上海": 10000,
+        "中物流（常州）": 10000,
+        "中储成都天一": 5000,
+        "中物流（乌鲁木齐）": 5000,
+        "中储新港": 10000,
+        "中储陆通（四经支路1号）": 5000,
+        "外运天津滨海": 10000,
+        "中远海运滨海": 10000,
+        "建发天津滨海": 10000,
+        "建发高科（外运龙泉驿）": 4500,
+        "建发高科（建发天津滨海）": 4500,
+        "物产中大资本（云铝物流）": 3000,
+        "银河德睿（外运昆明）": 3000,
+        "特变电工（建发天津东丽）": 5250,
+        "中物流（石河子）": 5000,
+        "炬申新疆": 5000,
+        "中储陆通（一纬路9号）": 10000,
+        "外运天津西青": 5000,
+        "建发天津东丽": 10000,
+        "国贸有色矿产（象屿速传上海）": 4500,
+        "新疆戈恩斯": 4500,
+        "特变电工（中疆物流昌吉物流园）": 5250,
+        "国贸有色矿产（外运天津滨海）": 4500,
+        "国贸有色矿产（中远海运滨海）": 4500,
+        "浙江四邦（青岛港物流）": 4500,
+        "浙江四邦（外运昆明）": 4500,
+        "浙商中拓（外运昆明）": 4500
+      }
+    };
+
+    function lookupCapTons(code, warehouse) {
+      const map = WAREHOUSE_CAP_TONS[code] || {};
+      return map[warehouse] != null ? map[warehouse] : null;
+    }
+
+    function warehouseUsedTons(list, warehouse, code) {
+      const unit = LOT_TONS[code] || 1;
+      return (list || [])
+        .filter(r => r.warehouse === warehouse)
+        .reduce((s, r) => s + (Number(r.today) || 0) * unit, 0);
+    }
+
+    function occClass(pct) {
+      if (pct >= 80) return "occ-high";
+      if (pct >= 50) return "occ-mid";
+      return "occ-low";
+    }
+
+    function capCellHtml(code, warehouse, list) {
+      const cap = lookupCapTons(code, warehouse);
+      if (cap == null) return { cap: "—", occ: "—" };
+      const used = warehouseUsedTons(list, warehouse, code);
+      const pct = cap > 0 ? (used / cap) * 100 : 0;
+      const unit = LOT_TONS[code] || 1;
+      const capLots = cap / unit;
+      const capText = cap.toLocaleString("zh-CN") + " 吨<span style='color:var(--text-muted);font-weight:400'> / " +
+        Number(capLots.toFixed(0)).toLocaleString("zh-CN") + " 手</span>";
+      const w = Math.max(0, Math.min(100, pct));
+      const occ = `<span class="occ-cell ${occClass(pct)}"><span class="occ-bar"><i style="width:${w.toFixed(1)}%"></i></span>${pct.toFixed(1)}%</span>`;
+      return { cap: capText, occ };
+    }
+
     const YEAR_COLORS = [
       "#60a5fa", "#f472b6", "#fbbf24", "#34d399", "#a78bfa", "#fb7185", "#38bdf8", "#c084fc"
     ];
@@ -1370,7 +1480,9 @@
         if (!list.length) {
           panel.innerHTML = `<div class="table-wrap" style="padding:1.5rem;text-align:center;color:var(--text-muted);">暂无仓库明细</div>`;
         } else {
-          const rows = list.map((w, wi) => `
+          const rows = list.map((w, wi) => {
+            const capOcc = capCellHtml(code, w.warehouse, list);
+            return `
             <tr class="wh-row" data-code="${code}" data-wh="${String(w.warehouse).replace(/"/g, "&quot;")}" data-tm="${String(w.trademark || "").replace(/"/g, "&quot;")}" title="点击查看季节性图">
               <td>${w.warehouse}</td>
               <td>${w.trademark || "—"}</td>
@@ -1381,8 +1493,10 @@
               <td class="${posNegClass(w.diff)}">${fmtDiff(w.diff)}</td>
               <td class="${posNegClass(w.weekDiff)}">${fmtDiff(w.weekDiff)}</td>
               <td class="${posNegClass(w.monthDiff)}">${fmtDiff(w.monthDiff)}</td>
-            </tr>
-          `).join("");
+              <td>${capOcc.cap}</td>
+              <td>${capOcc.occ}</td>
+            </tr>`;
+          }).join("");
           panel.innerHTML = `
             <div class="table-wrap">
               <table>
@@ -1397,11 +1511,14 @@
                     <th>日变化</th>
                     <th>周变化</th>
                     <th>月变化</th>
+                    <th>最大库容</th>
+                    <th>占用比例</th>
                   </tr>
                 </thead>
                 <tbody>${rows}</tbody>
               </table>
             </div>
+            <p class="cap-note">占用比例按该仓库全部商标仓单合计（吨）÷ 核定库容计算。碳酸锂 1 吨/手，多晶硅 3 吨/手，工业硅 5 吨/手。未公布库容的仓库显示为 —。</p>
           `;
         }
         panelsEl.appendChild(panel);
