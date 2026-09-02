@@ -271,6 +271,30 @@ def main() -> int:
             rows.append({**wh, "weekDiff": week_diff, "monthDiff": month_diff})
         details[code] = rows
 
+    # 官方分项为 0 时，用各仓库今日-昨日推算注册/注销后再汇总
+    for code in ("lc", "ps", "si"):
+        s = summary.get(code)
+        if not s:
+            continue
+        if int(s.get("regWbillQty") or 0) == 0 and int(s.get("logoutWbillQty") or 0) == 0:
+            sum_reg = sum_logout = 0
+            for wh in details.get(code, []):
+                reg = int(wh.get("reg") or 0)
+                logout = int(wh.get("logout") or 0)
+                if reg == 0 and logout == 0:
+                    d = int(wh.get("today") or 0) - int(wh.get("last") or 0)
+                    if d > 0:
+                        reg = d
+                    elif d < 0:
+                        logout = -d
+                    wh["reg"] = reg
+                    wh["logout"] = logout
+                sum_reg += int(wh.get("reg") or 0)
+                sum_logout += int(wh.get("logout") or 0)
+            s["regWbillQty"] = sum_reg
+            s["logoutWbillQty"] = sum_logout
+            s["flowInferred"] = True
+
     hist_map = {h["date"]: h for h in old_history}
     hist_map[fmt_date(latest_d)] = {
         "date": fmt_date(latest_d),
