@@ -348,6 +348,7 @@ def main() -> int:
         "day_files": day_files or [f"days-{year}.json"],
     }
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    embed_into_index(script_dir / "index.html", result)
 
     print(f"✅ 已更新 data.json （数据日期: {latest_d}）")
     print(f"   周基准: {week_d}  月基准: {month_d}")
@@ -359,6 +360,25 @@ def main() -> int:
             f"今日仓单 {s['wbillQty']}"
         )
     return 0
+
+
+def embed_into_index(html_path: Path, data: dict) -> None:
+    """把最新 data.json 写进 index.html，双击打开和 GitHub Pages 都能看到当天数据。"""
+    if not html_path.exists():
+        return
+    html = html_path.read_text(encoding="utf-8")
+    marker = "const EMBEDDED_DATA = "
+    start = html.find(marker)
+    if start < 0:
+        return
+    end = html.find("\n    let ALL_DAYS", start)
+    if end < 0:
+        end = html.find("\n\n    const VARIETY_ORDER", start)
+    if end < 0:
+        return
+    html = html[:start] + marker + json.dumps(data, ensure_ascii=False) + ";" + html[end:]
+    html_path.write_text(html, encoding="utf-8")
+    print("✅ 已同步写入 index.html")
 
 
 if __name__ == "__main__":
