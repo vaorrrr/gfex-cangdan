@@ -1,36 +1,22 @@
 {
-  "update_time": "2026-09-16 08:01:19",
-  "data_date": "2026-09-16",
-  "data_date_raw": "20260916",
-  "week_base_date": "2026-09-09",
-  "month_base_date": "2026-08-19",
+  "update_time": "2026-09-17 07:37:20",
+  "data_date": "2026-09-17",
+  "data_date_raw": "20260917",
+  "week_base_date": "2026-09-10",
+  "month_base_date": "2026-08-20",
   "summary": {
     "lc": {
       "variety": "碳酸锂",
       "code": "LC",
-      "lastWbillQty": 47164,
-      "regWbillQty": 180,
-      "logoutWbillQty": 1829,
-      "wbillQty": 45515,
-      "diff": -1649,
-      "weekDiff": -4282,
-      "monthDiff": 6907,
-      "weekBaseDate": "2026-09-09",
-      "monthBaseDate": "2026-08-19",
-      "flowInferred": true
-    },
-    "ps": {
-      "variety": "多晶硅",
-      "code": "PS",
-      "lastWbillQty": 24850,
-      "regWbillQty": 30,
-      "logoutWbillQty": 0,
-      "wbillQty": 24880,
-      "diff": 30,
-      "weekDiff": 680,
-      "monthDiff": 2300,
-      "weekBaseDate": "2026-09-09",
-      "monthBaseDate": "2026-08-19",
+      "lastWbillQty": 45515,
+      "regWbillQty": 10,
+      "logoutWbillQty": 1942,
+      "wbillQty": 43583,
+      "diff": -1932,
+      "weekDiff": -5681,
+      "monthDiff": 4250,
+      "weekBaseDate": "2026-09-10",
+      "monthBaseDate": "2026-08-20",
       "flowInferred": true
     },
     "si": {
@@ -38,13 +24,13 @@
       "code": "SI",
       "lastWbillQty": 33440,
       "regWbillQty": 0,
-      "logoutWbillQty": 0,
-      "wbillQty": 33440,
-      "diff": 0,
-      "weekDiff": -54,
-      "monthDiff": -71,
-      "weekBaseDate": "2026-09-09",
-      "monthBaseDate": "2026-08-19",
+      "logoutWbillQty": 20,
+      "wbillQty": 33420,
+      "diff": -20,
+      "weekDiff": -62,
+      "monthDiff": -115,
+      "weekBaseDate": "2026-09-10",
+      "monthBaseDate": "2026-08-20",
       "flowInferred": true
     }
   },
@@ -53,24 +39,24 @@
       {
         "warehouse": "象屿速传上海",
         "trademark": "",
-        "last": 5024,
+        "last": 4939,
         "reg": 0,
-        "logout": 85,
-        "today": 4939,
-        "diff": -85,
-        "weekDiff": -395,
-        "monthDiff": -317
+        "logout": 46,
+        "today": 4893,
+        "diff": -46,
+        "weekDiff": -411,
+        "monthDiff": -453
       },
       {
         "warehouse": "外运龙泉驿",
         "trademark": "",
-        "last": 6904,
-        "reg": 180,
-        "logout": 0,
-        "today": 7084,
-        "diff": 180,
-        "weekDiff": -165,
-        "monthDiff": 1010
+        "last": 7084,
+        "reg": 0,
+        "logout": 25,
+        "today": 7059,
+        "diff": -25,
+        "weekDiff": -190,
+        "monthDiff": 655
       },
       {
         "warehouse": "中储临港",
@@ -86,57 +72,57 @@
       {
         "warehouse": "建发上海",
         "trademark": "",
-        "last": 1880,
+        "last": 1520,
         "reg": 0,
-        "logout": 360,
-        "today": 1520,
-        "diff": -360,
-        "weekDiff": -300,
-        "monthDiff": 390
+        "logout": 120,
+        "today": 1400,
+        "diff": -120,
+        "weekDiff": -420,
+        "monthDiff": 120
       },
       {
         "warehouse": "中远海运临港",
         "trademark": "",
-        "last": 1010,
-        "reg": 0,
-        "logout": 150,
-        "today": 860,
-        "diff": -150,
-        "weekDiff": -160,
-        "monthDiff": 510
+        "last": 860,
+        "reg": 10,
+        "logout": 0,
+        "today": 870,
+        "diff": 10,
+        "weekDiff": -150,
+        "monthDiff": 520
       },
       {
         "warehouse": "天诚高新",
         "trademark": "",
-        "last": 10226,
+        "last": 9806,
         "reg": 0,
-        "logout": 420,
-        "today": 9806,
-        "diff": -420,
-        "weekDiff": -1090,
-        "monthDiff": 4748
+        "logout": 871,
+        "today": 8935,
+        "diff": -871,
+        "weekDiff": -1631,
+        "monthDiff": 3877
       },
       {
         "warehouse": "中远海运镇江",
         "trademark": "",
-        "last": 10344,
+        "last": 9659,
         "reg": 0,
-        "logout": 685,
+        "logout": 0,
         "today": 9659,
-        "diff": -685,
-        "weekDiff": -1003,
-        "monthDiff": -968
+        "diff": 0,
+        "weekDiff": -1040,
+        "monthDiff": -1123
       },
       {
         "warehouse": "五矿无锡",
         "trademark": "",
-        "last": 602,
+        "last": 566,
         "reg": 0,
-        "logout": 36,
-        "today": 566,
-        "diff": -36,
-        "weekDiff": -186,
-        "monthDiff": 24
+        "logout": 71,
+        "today": 495,
+        "diff": -71,
+        "weekDiff": -197,
+        "monthDiff": -47
       },
       {
         "warehouse": "江苏奔牛港务",
@@ -174,13 +160,13 @@
       {
         "warehouse": "中远海运南昌",
         "trademark": "",
-        "last": 6483,
+        "last": 6390,
         "reg": 0,
-        "logout": 93,
-        "today": 6390,
-        "diff": -93,
-        "weekDiff": -683,
-        "monthDiff": -650
+        "logout": 809,
+        "today": 5581,
+        "diff": -809,
+        "weekDiff": -1402,
+        "monthDiff": -1459
       },
       {
         "warehouse": "融捷集团",
@@ -256,309 +242,11 @@
         "logout": 0,
         "today": 120,
         "diff": 0,
-        "weekDiff": -300,
+        "weekDiff": -240,
         "monthDiff": 120
       }
     ],
-    "ps": [
-      {
-        "warehouse": "中物流（石河子）",
-        "trademark": "东方希望",
-        "last": 210,
-        "reg": 0,
-        "logout": 0,
-        "today": 210,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 10
-      },
-      {
-        "warehouse": "中物流（石河子）",
-        "trademark": "晶诺",
-        "last": 2530,
-        "reg": 0,
-        "logout": 0,
-        "today": 2530,
-        "diff": 0,
-        "weekDiff": 380,
-        "monthDiff": 880
-      },
-      {
-        "warehouse": "中物流（石河子）",
-        "trademark": "新特能源",
-        "last": 1540,
-        "reg": 0,
-        "logout": 0,
-        "today": 1540,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "中疆物流三工镇物流园",
-        "trademark": "晶诺",
-        "last": 20,
-        "reg": 0,
-        "logout": 0,
-        "today": 20,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "中疆物流三工镇物流园",
-        "trademark": "新特能源",
-        "last": 2180,
-        "reg": 0,
-        "logout": 0,
-        "today": 2180,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "中铝物流包头",
-        "trademark": "新特能源",
-        "last": 350,
-        "reg": 0,
-        "logout": 0,
-        "today": 350,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "中铝物流包头",
-        "trademark": "亚硅",
-        "last": 0,
-        "reg": 20,
-        "logout": 0,
-        "today": 20,
-        "diff": 20,
-        "weekDiff": 20,
-        "monthDiff": 20
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "永祥",
-        "last": 460,
-        "reg": 0,
-        "logout": 0,
-        "today": 460,
-        "diff": 0,
-        "weekDiff": 80,
-        "monthDiff": 310
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "新特能源",
-        "last": 900,
-        "reg": 0,
-        "logout": 0,
-        "today": 900,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": -100
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "丽豪",
-        "last": 620,
-        "reg": 0,
-        "logout": 0,
-        "today": 620,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": -60
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "亚硅",
-        "last": 300,
-        "reg": 0,
-        "logout": 0,
-        "today": 300,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "晶诺",
-        "last": 790,
-        "reg": 0,
-        "logout": 0,
-        "today": 790,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "国贸泰达包头",
-        "trademark": "东方希望",
-        "last": 510,
-        "reg": 0,
-        "logout": 0,
-        "today": 510,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "建发包头",
-        "trademark": "丽豪",
-        "last": 310,
-        "reg": 0,
-        "logout": 0,
-        "today": 310,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "建发包头",
-        "trademark": "东方希望",
-        "last": 1180,
-        "reg": 0,
-        "logout": 0,
-        "today": 1180,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "建发包头",
-        "trademark": "亚硅",
-        "last": 400,
-        "reg": 0,
-        "logout": 0,
-        "today": 400,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 300
-      },
-      {
-        "warehouse": "建发包头",
-        "trademark": "晶诺",
-        "last": 1460,
-        "reg": 0,
-        "logout": 0,
-        "today": 1460,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 200
-      },
-      {
-        "warehouse": "中远海运成都青白江",
-        "trademark": "亚硅",
-        "last": 1300,
-        "reg": 0,
-        "logout": 0,
-        "today": 1300,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 330
-      },
-      {
-        "warehouse": "中远海运成都青白江",
-        "trademark": "丽豪",
-        "last": 400,
-        "reg": 0,
-        "logout": 0,
-        "today": 400,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 70
-      },
-      {
-        "warehouse": "中远海运成都青白江",
-        "trademark": "永祥",
-        "last": 470,
-        "reg": 10,
-        "logout": 0,
-        "today": 480,
-        "diff": 10,
-        "weekDiff": 250,
-        "monthDiff": 280
-      },
-      {
-        "warehouse": "中储成都双流",
-        "trademark": "永祥",
-        "last": 1190,
-        "reg": 0,
-        "logout": 0,
-        "today": 1190,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 190
-      },
-      {
-        "warehouse": "中储成都双流",
-        "trademark": "东方希望",
-        "last": 60,
-        "reg": 0,
-        "logout": 0,
-        "today": 60,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "中储成都双流",
-        "trademark": "亚硅",
-        "last": 1670,
-        "reg": 0,
-        "logout": 0,
-        "today": 1670,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 170
-      },
-      {
-        "warehouse": "蒙特硅基（内蒙包头）",
-        "trademark": "MENGTE蒙特",
-        "last": 1000,
-        "reg": 0,
-        "logout": 0,
-        "today": 1000,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      },
-      {
-        "warehouse": "新特能源（新疆乌鲁木齐）",
-        "trademark": "新特能源",
-        "last": 1700,
-        "reg": 0,
-        "logout": 0,
-        "today": 1700,
-        "diff": 0,
-        "weekDiff": -50,
-        "monthDiff": -200
-      },
-      {
-        "warehouse": "新特准东",
-        "trademark": "新特能源",
-        "last": 1900,
-        "reg": 0,
-        "logout": 0,
-        "today": 1900,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": -100
-      },
-      {
-        "warehouse": "杭州正才（中物流（石河子））",
-        "trademark": "晶诺",
-        "last": 1400,
-        "reg": 0,
-        "logout": 0,
-        "today": 1400,
-        "diff": 0,
-        "weekDiff": 0,
-        "monthDiff": 0
-      }
-    ],
+    "ps": [],
     "si": [
       {
         "warehouse": "中储吴淞",
@@ -767,18 +455,18 @@
         "today": 1020,
         "diff": 0,
         "weekDiff": 0,
-        "monthDiff": 24
+        "monthDiff": 0
       },
       {
         "warehouse": "建发天津东丽",
         "trademark": "",
         "last": 3160,
         "reg": 0,
-        "logout": 0,
-        "today": 3160,
-        "diff": 0,
-        "weekDiff": -12,
-        "monthDiff": -12
+        "logout": 20,
+        "today": 3140,
+        "diff": -20,
+        "weekDiff": -20,
+        "monthDiff": -32
       },
       {
         "warehouse": "国贸有色矿产（象屿速传上海）",
@@ -4297,9 +3985,16 @@
       "lc": 45515,
       "ps": 24880,
       "si": 33440
+    },
+    {
+      "date": "2026-09-17",
+      "lc": 43583,
+      "ps": 0,
+      "si": 33420
     }
   ],
   "available_dates": [
+    "2026-09-17",
     "2026-09-16",
     "2026-09-15",
     "2026-09-11",
